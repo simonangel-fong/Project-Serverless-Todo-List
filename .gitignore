@@ -249,4 +249,5 @@ __marimo__/
 *.zip
 
 .env/
-lambda/layer/
+# the python dir for lambda layer
+lambda/python/

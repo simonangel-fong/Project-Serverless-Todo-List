@@ -30,3 +30,9 @@ variable "aws_lambda_function_runtime" {
   type        = string
   default     = "python3.11"
 }
+
+variable "aws_lambda_function_compatible_architectures" {
+  description = "AWS Lambda function compatible architectures"
+  type        = list(string)
+  default     = ["x86_64"]
+}

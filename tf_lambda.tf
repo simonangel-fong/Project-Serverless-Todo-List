@@ -7,18 +7,16 @@ data "archive_file" "lambda_zip" {
   output_path = "${path.module}/main.zip"
 }
 
-# # Common dependencies layer
-# resource "aws_lambda_layer_version" "lambda_layer" {
-#   layer_name          = "chatbot_dependencies_layer"
-#   filename            = "./lambda/layer.zip"
-#   description         = "Chatbot dependencies for Lambda functions"
-#   compatible_runtimes = ["python3.11"]
+# Add dependencies layer
+resource "aws_lambda_layer_version" "lambda_layer" {
+  layer_name               = "${var.aws_lambda_function_name}-layer"
+  description              = "Dependencies for Lambda functions ${var.aws_lambda_function_name}"
+  compatible_runtimes      = [var.aws_lambda_function_runtime]
+  compatible_architectures = ["x86_64"]
 
-#   compatible_architectures = ["x86_64"]
-
-# }
-
-
+  filename         = "./layer.zip"
+  source_code_hash = filebase64sha256("layer.zip") # trigger relace layer
+}
 
 # ###############################
 # Create a lambda function
@@ -34,8 +32,8 @@ resource "aws_lambda_function" "lambda_function" {
   role             = aws_iam_role.lambda_role.arn
   timeout          = 30
 
-  #   # layer
-  #   layers = [aws_lambda_layer_version.lambda_layer.arn]
+  # layer
+  layers = [aws_lambda_layer_version.lambda_layer.arn]
 
   tags = {
     Name = var.aws_lambda_function_name
