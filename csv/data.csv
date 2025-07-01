@@ -1,0 +1,6 @@
+id,task,priority,status,due_date
+1,Finish project proposal,High,In Progress,2025-07-05
+2,Send meeting notes,Medium,Pending,
+3,Review documentation,Low,Completed,2025-07-01
+4,Prepare presentation,High,Pending,2025-07-08
+5,Update code repository,Medium,In Progress,

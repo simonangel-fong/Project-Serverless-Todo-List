@@ -15,8 +15,8 @@ data "archive_file" "lambda_function_zip" {
 
 # Add dependencies layer
 resource "aws_lambda_layer_version" "lambda_function_layer" {
-  layer_name               = "${var.aws_lambda_function_name}-layer"
-  description              = "Dependencies for Lambda functions ${var.aws_lambda_function_name}"
+  layer_name               = "${var.app_name}-lambda-layer"
+  description              = "Dependencies for Lambda functions ${var.app_name}-lambda-function"
   compatible_runtimes      = [var.aws_lambda_function_runtime]
   compatible_architectures = ["x86_64"]
 
@@ -32,7 +32,7 @@ resource "aws_lambda_layer_version" "lambda_function_layer" {
 
 resource "aws_lambda_function" "lambda_function" {
 
-  function_name    = var.aws_lambda_function_name
+  function_name    = "${var.app_name}-lambda-function"
   filename         = data.archive_file.lambda_function_zip.output_path
   source_code_hash = data.archive_file.lambda_function_zip.output_base64sha256
   handler          = var.aws_lambda_function_handler
@@ -44,6 +44,6 @@ resource "aws_lambda_function" "lambda_function" {
   layers = [aws_lambda_layer_version.lambda_function_layer.arn]
 
   tags = {
-    Name = var.aws_lambda_function_name
+    Name = "${var.app_name}-lambda-function"
   }
 }

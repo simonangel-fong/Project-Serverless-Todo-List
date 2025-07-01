@@ -1,22 +1,48 @@
-# ###############################
+# ########################################
+# Application variables
+# ########################################
+
+variable "app_name" {
+  type        = string
+  description = "Name of application"
+  # only lowercase alphanumeric characters and hyphens allowed
+  default = "todo-app" # replaced by application name
+}
+
+variable "web_domain_name" {
+  type        = string
+  description = "Domain name for application"
+  default     = "arguswatcher.net" # replaced by the record hosted on cloudflare
+}
+
+variable "web_subdomain_name" {
+  type        = string
+  description = "Sub domain name for application"
+  default     = "api-test" # replaced by the sub domain to updated on cloudflare
+}
+
+
+# ########################################
 # Provider
-# ###############################
+# ########################################
 
 variable "aws_region" {
   description = "AWS region"
   type        = string
-  default     = "ca-central-1"
+  default     = "ca-central-1" # replaced by the aws region anme
 }
+
+variable "cloudflare_api_token" {
+  description = "Cloudflare API token"
+  type        = string
+  sensitive   = true
+  default     = "cf_token" # replace by cloudflare token
+}
+
 
 # ###############################
 # AWS Lambda
 # ###############################
-
-variable "aws_lambda_function_name" {
-  description = "AWS Lambda function name"
-  type        = string
-  default     = "csv_reader"
-}
 
 variable "aws_lambda_function_handler" {
   description = "AWS Lambda function handler: file name.function name"
@@ -40,16 +66,10 @@ variable "aws_lambda_function_compatible_architectures" {
 # AWS API Gateway
 # ###############################
 
-variable "aws_api_gateway_name" {
-  description = "Name of the API Gateway"
-  type        = string
-  default     = "csv_reader_api"
-}
-
-variable "aws_api_gateway_path_csv_reader" {
+variable "aws_api_gateway_path_list" {
   description = "API path"
   type        = string
-  default     = "csv-reader"
+  default     = "list"
 }
 
 variable "aws_api_gateway_stage_dev" {
@@ -58,3 +78,12 @@ variable "aws_api_gateway_stage_dev" {
   default     = "dev"
 }
 
+# ###############################
+# AWS ACM to verify the cf cert
+# ###############################
+
+variable "acm_validation_method" {
+  description = "Method for validating the ACM certificate (DNS or EMAIL)"
+  type        = string
+  default     = "DNS"
+}

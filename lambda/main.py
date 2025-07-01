@@ -7,8 +7,8 @@ from datetime import datetime
 
 def lambda_handler(event, context):
     # Read CSV file from S3
-    bucket = 'aws-api.arguswatcher.net'
-    key = 'user_trip_duration.csv'
+    bucket = 'csv-reader-pwv1nidq'
+    key = 'data.csv'
 
     s3_client = boto3.client('s3')
     csv_file = s3_client.get_object(Bucket=bucket, Key=key)
