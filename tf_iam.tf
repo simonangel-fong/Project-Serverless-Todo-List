@@ -1,5 +1,3 @@
-# IAM role for Lambda function
-
 # ###############################
 # IAM role for Lambda: 
 # ###############################
@@ -46,4 +44,16 @@ resource "aws_iam_policy" "lambda_s3_access_policy" {
 resource "aws_iam_role_policy_attachment" "lambda_s3_access_attachment" {
   role       = aws_iam_role.lambda_role.name
   policy_arn = aws_iam_policy.lambda_s3_access_policy.arn
+}
+
+# ###############################
+# IAM role for API to invoke lambda service
+# ###############################
+
+resource "aws_lambda_permission" "api_gateway_invoke_get" {
+  function_name = aws_lambda_function.lambda_function.id
+  action        = "lambda:InvokeFunction"
+  principal     = "apigateway.amazonaws.com"
+  statement_id  = "AllowExecutionFromAPIGatewayGET"
+  source_arn    = "${aws_api_gateway_rest_api.rest_api.execution_arn}/*/*"
 }

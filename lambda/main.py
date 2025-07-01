@@ -21,7 +21,7 @@ def lambda_handler(event, context):
     response = {
         "title": "User-based Trip & Duration Data",
         "creator": "Wenhao Fang",
-        "deployed on": "Proxmox VM",
+        "deployed on": "Amazon Web Services(AWS)",
         "datetime": datetime.now().strftime("%Y-%m-%d %H:%M"),
         "status": "success",
         "item_count": len(df),
@@ -30,9 +30,10 @@ def lambda_handler(event, context):
 
     return {
         'statusCode': 200,
+        'headers': {'Content-Type': 'application/json'},
         'body': json.dumps(response)
     }
 
 
-if __name__ == "__main__":
-    print(lambda_handler(None, None))
+# if __name__ == "__main__":
+#     print(lambda_handler(None, None))
