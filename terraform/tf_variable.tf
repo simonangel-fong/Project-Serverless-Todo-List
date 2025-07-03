@@ -25,11 +25,11 @@ variable "aws_region" {
   default     = "ca-central-1" # replaced by the aws region anme
 }
 
-variable "cloudflare_api_token" {
-  description = "Cloudflare API token"
-  type        = string
-  sensitive   = true
-}
+# variable "cloudflare_api_token" {
+#   description = "Cloudflare API token"
+#   type        = string
+#   sensitive   = true
+# }
 
 
 # ###############################
