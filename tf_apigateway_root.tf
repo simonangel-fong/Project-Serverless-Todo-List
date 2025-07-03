@@ -36,8 +36,9 @@ resource "aws_api_gateway_integration" "lambda_integration" {
   resource_id             = aws_api_gateway_resource.list_resource.id
   http_method             = aws_api_gateway_method.method_get.http_method
   integration_http_method = "POST"
-  type                    = "AWS"
-  uri                     = aws_lambda_function.lambda_function.invoke_arn
+  type                    = "AWS_PROXY"
+  # type                    = "AWS"
+  uri = aws_lambda_function.lambda_function.invoke_arn
 }
 
 # get response
@@ -166,13 +167,15 @@ resource "aws_api_gateway_stage" "stage" {
 # API Gateway Customer Domain Name: mapping
 # ###############################
 
-data "aws_api_gateway_domain_name" "api_domain" {
-  domain_name = "api.arguswatcher.net"
-}
+# data "aws_api_gateway_domain_name" "api_domain" {
+#   domain_name = "api.arguswatcher.net"
+# }
 
-resource "aws_api_gateway_base_path_mapping" "api_domain_mapping" {
-  api_id      = aws_api_gateway_rest_api.rest_api.id
-  stage_name  = aws_api_gateway_stage.stage.stage_name
-  domain_name = data.aws_api_gateway_domain_name.api_domain.domain_name
-  base_path   = ""
-}
+# resource "aws_api_gateway_base_path_mapping" "api_domain_mapping" {
+#   api_id      = aws_api_gateway_rest_api.rest_api.id
+#   stage_name  = aws_api_gateway_stage.stage.stage_name
+#   domain_name = data.aws_api_gateway_domain_name.api_domain.domain_name
+#   base_path   = ""
+
+#   depends_on = [aws_api_gateway_stage.stage]
+# }

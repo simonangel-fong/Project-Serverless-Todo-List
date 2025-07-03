@@ -6,21 +6,14 @@ variable "app_name" {
   type        = string
   description = "Name of application"
   # only lowercase alphanumeric characters and hyphens allowed
-  default = "todo-app" # replaced by application name
+  # default = "todo-app" # replaced by application name
 }
 
-variable "web_domain_name" {
+variable "domain_name" {
   type        = string
   description = "Domain name for application"
-  default     = "arguswatcher.net" # replaced by the record hosted on cloudflare
+  # default     = "arguswatcher.net" # replaced by the record hosted on cloudflare
 }
-
-variable "web_subdomain_name" {
-  type        = string
-  description = "Sub domain name for application"
-  default     = "api-test" # replaced by the sub domain to updated on cloudflare
-}
-
 
 # ########################################
 # Provider
@@ -36,7 +29,6 @@ variable "cloudflare_api_token" {
   description = "Cloudflare API token"
   type        = string
   sensitive   = true
-  default     = "cf_token" # replace by cloudflare token
 }
 
 
@@ -87,3 +79,11 @@ variable "acm_validation_method" {
   type        = string
   default     = "DNS"
 }
+
+variable "cloudflare_zone_id" {
+  description = "Method for validating the ACM certificate (DNS or EMAIL)"
+  type        = string
+  default     = "DNS"
+}
+
+

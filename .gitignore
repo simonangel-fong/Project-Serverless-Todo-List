@@ -251,3 +251,5 @@ __marimo__/
 .env/
 # the python dir for lambda layer
 lambda/python/
+
+terraform/state.config
