@@ -3,18 +3,20 @@ name: "Terraform Deploy"
 on:
   push:
     branches: [master]
-    # paths:
-    #   - terraform/**
-    #   - web/**
+    paths: # only when specific dir gets updated
+      - terraform/**
+      - lambda/**
+      - s3/**
   pull_request:
     branches: [master]
     paths:
       - terraform/**
-      - web/**
+      - lambda/**
+      - s3/**
   workflow_dispatch:
 
 jobs:
-  plan:
+  deploy:
     name: Terraform Deploy
     runs-on: ubuntu-latest
     defaults:
@@ -64,9 +66,24 @@ jobs:
             -backend-config="key=${{ secrets.AWS_BACKEND_BUCKET_KEY }}" \
             -backend-config="encrypt=true"
 
-      - name: Terraform format
-        id: fmt
+      - id: fmt
+        name: Terraform format
         run: terraform fmt -check
+
+      - id: package-layer
+        name: Package Lambda function layers
+        run: |
+          pip install \
+            -r ../lambda/requirements.txt \
+            -t ../lambda/python \
+            --platform manylinux2014_x86_64 \
+            --only-binary=:all: \
+            --upgrade
+
+      - id: zip-layer
+        name: Create Lambda layer zip
+        run: |
+          zip -r layer.zip python/
 
       - name: Terraform validate
         id: validate
