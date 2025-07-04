@@ -56,6 +56,7 @@ resource "aws_iam_policy" "lambda_dynamodb_policy" {
       }
     ]
   })
+  depends_on = [aws_dynamodb_table.dynamodb_table]
 }
 
 # Attach policy to role
