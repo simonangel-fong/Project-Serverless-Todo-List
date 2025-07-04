@@ -85,7 +85,7 @@ jobs:
       - id: zip-layer
         name: Create Lambda layer zip
         run: |
-          zip -r layer.zip python/
+          zip -r ../lambda/layer.zip ../lambda/python/
 
       - name: Terraform validate
         id: validate
