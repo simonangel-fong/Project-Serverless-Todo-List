@@ -8,7 +8,7 @@ A repo of Terraform Project implement AWS API Gateway, Lambda, S3.
 # └── boto3/
 # └── numpy/
 # └── (dependencies of the other packages)
-pip install -r ./lambda/requirements.txt --platform manylinux2014_x86_64 --only-binary=:all: -t ./lambda/python --upgrade
+pip install -r ./requirements.txt --platform manylinux2014_x86_64 --only-binary=:all: -t ./python --upgrade
 # power shell
-Compress-Archive -Path ./lambda/python -DestinationPath ./layer.zip -Force
+Compress-Archive -Path ./python -DestinationPath ./layer.zip -Force
 ```
