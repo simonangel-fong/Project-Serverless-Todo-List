@@ -22,7 +22,30 @@ resource "aws_api_gateway_deployment" "rest_api_deployment" {
   rest_api_id = aws_api_gateway_rest_api.rest_api.id
 
   triggers = {
-    redeployment = sha1(jsonencode(aws_api_gateway_rest_api.rest_api.body))
+    redeployment = sha1(jsonencode([
+      # Web Root + CORS
+      aws_api_gateway_method.root_method_options_cors,
+      aws_api_gateway_integration.root_integration_options,
+      aws_api_gateway_method_response.root_method_response_options,
+      aws_api_gateway_integration_response.root_integration_response_options,
+
+      # Web Proxy
+      aws_api_gateway_resource.root_proxy,
+      aws_api_gateway_method.proxy_method_get,
+      aws_api_gateway_integration.proxy_s3_integration,
+      aws_api_gateway_method_response.proxy_method_response_get,
+      aws_api_gateway_integration_response.proxy_integration_response_get,
+
+      # api List
+      aws_api_gateway_integration.list_lambda_integration,
+      aws_api_gateway_integration_response.list_integration_response_get,
+      aws_api_gateway_method.list_method_get,
+      aws_api_gateway_method_response.list_method_response_get,
+      aws_api_gateway_method.list_method_options_cors,
+      aws_api_gateway_integration.list_integration_options,
+      aws_api_gateway_method_response.list_method_response_options,
+      aws_api_gateway_integration_response.list_integration_response_option
+    ]))
   }
 
   lifecycle {
@@ -30,6 +53,20 @@ resource "aws_api_gateway_deployment" "rest_api_deployment" {
   }
 
   depends_on = [
+    # Web Root + CORS
+    aws_api_gateway_method.root_method_options_cors,
+    aws_api_gateway_integration.root_integration_options,
+    aws_api_gateway_method_response.root_method_response_options,
+    aws_api_gateway_integration_response.root_integration_response_options,
+
+    # Web Proxy
+    aws_api_gateway_resource.root_proxy,
+    aws_api_gateway_method.proxy_method_get,
+    aws_api_gateway_integration.proxy_s3_integration,
+    aws_api_gateway_method_response.proxy_method_response_get,
+    aws_api_gateway_integration_response.proxy_integration_response_get,
+
+    # api List
     aws_api_gateway_integration.list_lambda_integration,
     aws_api_gateway_integration_response.list_integration_response_get,
     aws_api_gateway_method.list_method_get,
