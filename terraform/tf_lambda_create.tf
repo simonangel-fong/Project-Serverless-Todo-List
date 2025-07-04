@@ -2,10 +2,10 @@
 # Package the local function file
 # ###############################
 
-data "archive_file" "lambda_function_list_zip" {
+data "archive_file" "lambda_function_create_zip" {
   type        = "zip"
-  source_file = "${path.module}/../lambda/list.py"
-  output_path = "${path.module}/../lambda/list.zip"
+  source_file = "${path.module}/../lambda/create.py"
+  output_path = "${path.module}/../lambda/create.zip"
 }
 
 # Add dependencies layer
@@ -26,10 +26,10 @@ resource "aws_lambda_layer_version" "lambda_function_layer" {
 
 resource "aws_lambda_function" "lambda_function" {
 
-  function_name    = "${var.app_name}-lambda-function-list"
-  filename         = data.archive_file.lambda_function_list_zip.output_path
-  source_code_hash = data.archive_file.lambda_function_list_zip.output_base64sha256
-  handler          = "list.lambda_handler"
+  function_name    = "${var.app_name}-lambda-function-create"
+  filename         = data.archive_file.lambda_function_create_zip.output_path
+  source_code_hash = data.archive_file.lambda_function_create_zip.output_base64sha256
+  handler          = "create.lambda_handler"
   runtime          = var.aws_lambda_function_runtime
   role             = aws_iam_role.lambda_role.arn
   timeout          = 30
