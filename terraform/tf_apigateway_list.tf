@@ -1,135 +1,122 @@
-# # ###############################
-# # API Gateway: List
-# # ###############################
+# ###############################
+# API Gateway: List
+# ###############################
 
-# resource "aws_api_gateway_rest_api" "rest_api" {
-#   name        = "${var.app_name}-api-gateway-list"
-#   description = "${var.app_name} API Gateway - List"
+resource "aws_api_gateway_resource" "list_resource" {
+  rest_api_id = aws_api_gateway_rest_api.rest_api.id
+  parent_id   = aws_api_gateway_rest_api.rest_api.root_resource_id
+  path_part   = "list"
+}
 
-#   endpoint_configuration {
-#     types = ["REGIONAL"]
-#   }
+# method get
+resource "aws_api_gateway_method" "list_method_get" {
+  rest_api_id = aws_api_gateway_rest_api.rest_api.id
+  resource_id = aws_api_gateway_resource.list_resource.id
+  http_method = "GET"
 
-#   tags = {
-#     Name = "${var.app_name}-api-gateway-list"
-#   }
-# }
+  authorization = "NONE"
+}
 
-# resource "aws_api_gateway_resource" "list_resource" {
-#   rest_api_id = aws_api_gateway_rest_api.rest_api.id
-#   parent_id   = aws_api_gateway_rest_api.rest_api.root_resource_id
-#   path_part   = "list"
-# }
+# get integrate
+resource "aws_api_gateway_integration" "list_lambda_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.rest_api.id
+  resource_id             = aws_api_gateway_resource.list_resource.id
+  http_method             = aws_api_gateway_method.list_method_get.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  # type                    = "AWS"
+  uri = aws_lambda_function.lambda_function.invoke_arn
+}
 
-# # method get
-# resource "aws_api_gateway_method" "method_get" {
-#   rest_api_id = aws_api_gateway_rest_api.rest_api.id
-#   resource_id = aws_api_gateway_resource.list_resource.id
-#   http_method = "GET"
+# get response
+resource "aws_api_gateway_method_response" "list_method_response_get" {
+  rest_api_id = aws_api_gateway_rest_api.rest_api.id
+  resource_id = aws_api_gateway_resource.list_resource.id
+  http_method = aws_api_gateway_method.list_method_get.http_method
+  status_code = "200"
 
-#   authorization = "NONE"
-# }
+  //cors section
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true,
+    "method.response.header.Access-Control-Allow-Methods" = true,
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
 
-# # get integrate
-# resource "aws_api_gateway_integration" "lambda_integration" {
-#   rest_api_id             = aws_api_gateway_rest_api.rest_api.id
-#   resource_id             = aws_api_gateway_resource.list_resource.id
-#   http_method             = aws_api_gateway_method.method_get.http_method
-#   integration_http_method = "POST"
-#   type                    = "AWS_PROXY"
-#   # type                    = "AWS"
-#   uri = aws_lambda_function.lambda_function.invoke_arn
-# }
+}
 
-# # get response
-# resource "aws_api_gateway_method_response" "method_response_get" {
-#   rest_api_id = aws_api_gateway_rest_api.rest_api.id
-#   resource_id = aws_api_gateway_resource.list_resource.id
-#   http_method = aws_api_gateway_method.method_get.http_method
-#   status_code = "200"
-
-#   //cors section
-#   response_parameters = {
-#     "method.response.header.Access-Control-Allow-Headers" = true,
-#     "method.response.header.Access-Control-Allow-Methods" = true,
-#     "method.response.header.Access-Control-Allow-Origin"  = true
-#   }
-
-# }
-
-# # get integation response
-# resource "aws_api_gateway_integration_response" "integration_response_get" {
-#   rest_api_id = aws_api_gateway_rest_api.rest_api.id
-#   resource_id = aws_api_gateway_resource.list_resource.id
-#   http_method = aws_api_gateway_method.method_get.http_method
-#   status_code = aws_api_gateway_method_response.method_response_get.status_code
+# get integation response
+resource "aws_api_gateway_integration_response" "list_integration_response_get" {
+  rest_api_id = aws_api_gateway_rest_api.rest_api.id
+  resource_id = aws_api_gateway_resource.list_resource.id
+  http_method = aws_api_gateway_method.list_method_get.http_method
+  status_code = aws_api_gateway_method_response.list_method_response_get.status_code
 
 
-#   //cors
-#   response_parameters = {
-#     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-#     "method.response.header.Access-Control-Allow-Methods" = "'GET,OPTIONS,POST,PUT'",
-#     "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-#   }
+  //cors
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,OPTIONS,POST,PUT'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
 
-#   depends_on = [
-#     aws_api_gateway_method.method_get,
-#     aws_api_gateway_integration.lambda_integration
-#   ]
-# }
+  depends_on = [
+    aws_api_gateway_method.list_method_get,
+    aws_api_gateway_integration.list_lambda_integration
+  ]
+}
 
-# # option cors
-# resource "aws_api_gateway_method" "method_options_cors" {
-#   rest_api_id   = aws_api_gateway_rest_api.rest_api.id
-#   resource_id   = aws_api_gateway_resource.list_resource.id
-#   http_method   = "OPTIONS"
-#   authorization = "NONE"
-# }
+# option cors
+resource "aws_api_gateway_method" "list_method_options_cors" {
+  rest_api_id   = aws_api_gateway_rest_api.rest_api.id
+  resource_id   = aws_api_gateway_resource.list_resource.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
 
-# # option integration: cors
-# resource "aws_api_gateway_integration" "integration_options" {
-#   rest_api_id             = aws_api_gateway_rest_api.rest_api.id
-#   resource_id             = aws_api_gateway_resource.list_resource.id
-#   http_method             = aws_api_gateway_method.method_options_cors.http_method
-#   integration_http_method = "OPTIONS"
-#   type                    = "MOCK"
-#   request_templates = {
-#     "application/json" = "{\"statusCode\": 200}"
-#   }
-# }
+# option integration: cors
+resource "aws_api_gateway_integration" "list_integration_options" {
+  rest_api_id             = aws_api_gateway_rest_api.rest_api.id
+  resource_id             = aws_api_gateway_resource.list_resource.id
+  http_method             = aws_api_gateway_method.list_method_options_cors.http_method
+  integration_http_method = "OPTIONS"
+  type                    = "MOCK"
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
 
-# # option: method response
-# resource "aws_api_gateway_method_response" "method_response_options" {
-#   rest_api_id = aws_api_gateway_rest_api.rest_api.id
-#   resource_id = aws_api_gateway_resource.list_resource.id
-#   http_method = aws_api_gateway_method.method_options_cors.http_method
-#   status_code = "200"
+# option: method response
+resource "aws_api_gateway_method_response" "list_method_response_options" {
+  rest_api_id = aws_api_gateway_rest_api.rest_api.id
+  resource_id = aws_api_gateway_resource.list_resource.id
+  http_method = aws_api_gateway_method.list_method_options_cors.http_method
+  status_code = "200"
 
-#   response_parameters = {
-#     "method.response.header.Access-Control-Allow-Headers" = true,
-#     "method.response.header.Access-Control-Allow-Methods" = true,
-#     "method.response.header.Access-Control-Allow-Origin"  = true
-#   }
-# }
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true,
+    "method.response.header.Access-Control-Allow-Methods" = true,
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
 
-# # option integration_response
-# resource "aws_api_gateway_integration_response" "integration_response_option" {
-#   rest_api_id = aws_api_gateway_rest_api.rest_api.id
-#   resource_id = aws_api_gateway_resource.list_resource.id
-#   http_method = aws_api_gateway_method.method_options_cors.http_method
-#   status_code = aws_api_gateway_method_response.method_response_options.status_code
+# option integration_response
+resource "aws_api_gateway_integration_response" "list_integration_response_option" {
+  rest_api_id = aws_api_gateway_rest_api.rest_api.id
+  resource_id = aws_api_gateway_resource.list_resource.id
+  http_method = aws_api_gateway_method.list_method_options_cors.http_method
+  status_code = aws_api_gateway_method_response.list_method_response_options.status_code
 
-#   response_parameters = {
-#     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-#     "method.response.header.Access-Control-Allow-Methods" = "'GET,OPTIONS,POST,PUT'",
-#     "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-#   }
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,OPTIONS,POST,PUT'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
 
-#   depends_on = [
-#     aws_api_gateway_method.method_options_cors,
-#     aws_api_gateway_integration.integration_options,
-#   ]
-# }
+  depends_on = [
+    aws_api_gateway_method.list_method_options_cors,
+    aws_api_gateway_integration.list_integration_options,
+  ]
+}
 
 # # ###############################
 # # API Gateway Deployment: a snapshot of the REST API configuration
