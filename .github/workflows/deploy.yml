@@ -4,12 +4,14 @@ on:
   push:
     branches: [master]
     paths: # only when specific dir gets updated
+      - .github/**
       - terraform/**
       - lambda/**
       - s3/**
   pull_request:
     branches: [master]
     paths:
+      - .github/**
       - terraform/**
       - lambda/**
       - s3/**
