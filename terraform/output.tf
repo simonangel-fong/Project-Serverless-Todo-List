@@ -17,6 +17,6 @@ output "aws_dynamodb_table_name" {
 # ########################################
 # Cloudfront Table
 # ########################################
-output "cloudfront_url" {
-  value = aws_cloudfront_distribution.s3_website_distribution.domain_name
-}
+# output "cloudfront_url" {
+#   value = aws_cloudfront_distribution.s3_website_distribution.domain_name
+# }

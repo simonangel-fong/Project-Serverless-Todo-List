@@ -50,6 +50,12 @@ resource "aws_api_gateway_deployment" "rest_api_deployment" {
       aws_api_gateway_method_response.method_response_post_item.id,
       aws_api_gateway_integration_response.integration_response_post_item.id,
 
+      # OPTIONS /items
+      aws_api_gateway_method.method_options_cors.id,
+      aws_api_gateway_integration.integration_options_cors.id,
+      aws_api_gateway_method_response.method_response_options_cors.id,
+      aws_api_gateway_integration_response.integration_response_option_cors.id,
+
       # GET /items/{id}
       aws_api_gateway_resource.resource_item_by_id.id,
       aws_api_gateway_method.method_get_item_by_id.id,
@@ -67,7 +73,13 @@ resource "aws_api_gateway_deployment" "rest_api_deployment" {
       aws_api_gateway_method.method_delete_item_by_id.id,
       aws_api_gateway_integration.integration_lambda_delete_item_by_id.id,
       aws_api_gateway_method_response.method_response_delete_item_by_id.id,
-      aws_api_gateway_integration_response.integration_response_delete_item_by_id.id
+      aws_api_gateway_integration_response.integration_response_delete_item_by_id.id,
+
+      # OPTIONS /items/{id} for CORS
+      aws_api_gateway_method.options_item_by_id.id,
+      aws_api_gateway_integration.options_integration_item_by_id.id,
+      aws_api_gateway_method_response.options_response_item_by_id.id,
+      aws_api_gateway_integration_response.options_integration_response_item_by_id.id,
 
     ]))
   }
@@ -89,6 +101,12 @@ resource "aws_api_gateway_deployment" "rest_api_deployment" {
     aws_api_gateway_method_response.method_response_post_item,
     aws_api_gateway_integration_response.integration_response_post_item,
 
+    # OPTIONS /items
+    aws_api_gateway_method.method_options_cors,
+    aws_api_gateway_integration.integration_options_cors,
+    aws_api_gateway_method_response.method_response_options_cors,
+    aws_api_gateway_integration_response.integration_response_option_cors,
+
     # GET /items/{id}
     aws_api_gateway_resource.resource_item_by_id,
     aws_api_gateway_method.method_get_item_by_id,
@@ -106,18 +124,56 @@ resource "aws_api_gateway_deployment" "rest_api_deployment" {
     aws_api_gateway_method.method_delete_item_by_id,
     aws_api_gateway_integration.integration_lambda_delete_item_by_id,
     aws_api_gateway_method_response.method_response_delete_item_by_id,
-    aws_api_gateway_integration_response.integration_response_delete_item_by_id
+    aws_api_gateway_integration_response.integration_response_delete_item_by_id,
+
+    # OPTIONS /items/{id} for CORS
+    aws_api_gateway_method.options_item_by_id,
+    aws_api_gateway_integration.options_integration_item_by_id,
+    aws_api_gateway_method_response.options_response_item_by_id,
+    aws_api_gateway_integration_response.options_integration_response_item_by_id,
+
   ]
 }
 
 resource "aws_api_gateway_stage" "api_stage" {
+  stage_name    = "prod"
   deployment_id = aws_api_gateway_deployment.rest_api_deployment.id
   rest_api_id   = aws_api_gateway_rest_api.rest_api.id
-  stage_name    = "prod"
 
   variables = {
     lambdaAlias = "live"
   }
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.api_gateway_logs.arn
+    format = jsonencode({
+      requestId      = "$context.requestId"
+      ip             = "$context.identity.sourceIp"
+      caller         = "$context.identity.caller"
+      user           = "$context.identity.user"
+      requestTime    = "$context.requestTime"
+      httpMethod     = "$context.httpMethod"
+      resourcePath   = "$context.resourcePath"
+      status         = "$context.status"
+      protocol       = "$context.protocol"
+      responseLength = "$context.responseLength"
+    })
+  }
+
+  xray_tracing_enabled  = true
+  cache_cluster_enabled = false
+
+  depends_on = [
+    aws_cloudwatch_log_group.api_gateway_logs,
+    aws_api_gateway_account.account_settings
+  ]
+}
+
+# register the logging role
+resource "aws_api_gateway_account" "account_settings" {
+  cloudwatch_role_arn = aws_iam_role.api_gateway_cloudwatch_role.arn
+
+  depends_on = [aws_iam_role_policy.api_gateway_cloudwatch_policy]
 }
 
 # ###############################
