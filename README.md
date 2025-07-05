@@ -1,5 +1,28 @@
-# Terraform_AWS_API_Lambda_S3_CSV
-A repo of Terraform Project implement AWS API Gateway, Lambda, S3.
+# Project Overview
+
+- Project Name: Todo List App
+- Features:
+
+  - Serverless
+  - Cloud Native
+  - IaC
+
+- Technologies Used
+
+  - `Terraform`: Infrastructure as Code (IaC) tool for provisioning and managing cloud resources.
+  - AWS Services:
+    - `S3`: Hosting static website and storing todo list data.
+    - `Lambda`: Serverless functions for backend logic and API integration.
+    - `API Gateway`: Exposing Lambda functions as RESTful APIs.
+    - `CloudFront`: Content Delivery Network (CDN) for caching and faster content delivery.
+    - `Cloudflare`: DNS management and additional CDN capabilities.
+    - `GitHub Actions`: Controlling the deployment pipeline for automated deployment.
+
+- Architecture
+
+![arch](./architecture.png)
+
+- Important Note: Command for Lambda layers
 
 ```sh
 # the following is what should be the python dir, according to the document.
