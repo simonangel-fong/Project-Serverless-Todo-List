@@ -1,6 +1,11 @@
 id,task,priority,status,due_date
-1,Finish project proposal,High,In Progress,2025-07-05
-2,Send meeting notes,Medium,Pending,
-3,Review documentation,Low,Completed,2025-07-01
-4,Prepare presentation,High,Pending,2025-07-08
-5,Update code repository,Medium,In Progress,
+1720190400001,Finish project proposal,High,In Progress,2025-07-05
+1720190400002,Send meeting notes,Medium,Pending,
+1720190400003,Review documentation,Low,Completed,2025-07-01
+1720190400004,Prepare presentation,High,Pending,2025-07-08
+1720190400005,Update code repository,Medium,In Progress,
+1720190400006,Schedule team meeting,High,Pending,2025-07-06
+1720190400007,Test API endpoints,Medium,In Progress,2025-07-09
+1720190400008,Write unit tests,Low,Pending,2025-07-12
+1720190400009,Deploy to staging,High,Completed,2025-07-03
+1720190400010,Code review session,Medium,Pending,2025-07-07

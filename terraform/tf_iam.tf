@@ -34,10 +34,18 @@ resource "aws_iam_policy" "lambda_dynamodb_policy" {
       {
         Effect = "Allow"
         Action = [
+          # Read permissions
           "dynamodb:Scan",
           "dynamodb:Query",
           "dynamodb:GetItem",
-          "dynamodb:BatchGetItem"
+          "dynamodb:BatchGetItem",
+          # Write permissions for adding new items
+          "dynamodb:PutItem",
+          "dynamodb:BatchWriteItem",
+          # Update permissions (for future use)
+          "dynamodb:UpdateItem",
+          # Delete permissions (for future use)
+          "dynamodb:DeleteItem"
         ]
         Resource = [
           aws_dynamodb_table.dynamodb_table.arn,
