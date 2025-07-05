@@ -10,182 +10,150 @@ table = dynamodb.Table('todo-app-table')
 
 
 def lambda_handler(event, context):
-    print(event)
-    body = {}
-    statusCode = 200
-    headers = {
-        "Content-Type": "application/json"
-    }
+
+    # default response
+    statusCode = 500
+    response_body = {}
 
     try:
-        # DELETE /items/{id} - Removes an item by ID
-        if event['routeKey'] == "DELETE /items/{id}":
-            table.delete_item(
-                Key={'id': event['pathParameters']['id']})
-            body = 'Deleted item ' + event['pathParameters']['id']
+        # get method, path
+        http_method = event['httpMethod']
+        path = event['path']
+        path_parameters = event.get('pathParameters')
 
-        # GET /items/{id} - Retrieves a single item by ID
-        elif event['routeKey'] == "GET /items/{id}":
-            body = table.get_item(
-                Key={'id': event['pathParameters']['id']})
-            body = body["Item"]
-            responseBody = [
-                {
-                    'task': body['task'],
-                    'priority': body['priority'],
-                    'status': body['status'],
-                    'due_date': body['due_date']
-                }
-            ]
-            body = responseBody
+        # Get all: /items
+        if http_method == 'GET' and path == '/items':
+            response = table.scan()
+            items = response.get('Items', [])
 
-        # GET /items - Retrieves all items (scan operation)
-        elif event['routeKey'] == "GET /items":
-            body = table.scan()
-            body = body["Items"]
-            print("----ITEMS----")
-            print(body)
-            responseBody = []
-            for items in body:
-                responseItems = [
-                    {
-                        'task': items['task'],
-                        'priority': items['priority'],
-                        'status': items['status'],
-                        'due_date': items['due_date']
-                    }
-                ]
-                responseBody.append(responseItems)
-            body = responseBody
-
-        # PUT /items - Creates or updates an item
-        elif event['routeKey'] == "PUT /items":
-            requestJSON = json.loads(event['body'])
-
-            # Generate time-based ID with UUID suffix
-            timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
-            unique_id = f"{timestamp}-{str(uuid.uuid4())[:8]}"
-            table.put_item(
-                Item={
-                    'id': unique_id,
-                    'task': requestJSON['task'],
-                    'priority': requestJSON['priority'],
-                    'status': requestJSON['status'],
-                    'due_date': requestJSON['due_date']
+            # Format each item, handling optional fields safely
+            formatted_items = []
+            for item in items:
+                formatted_items.append({
+                    'id': item.get('id'),
+                    'task_name': item.get('task_name'),
+                    'task_priority': item.get('task_priority', 'Medium'),
+                    'task_status': item.get('task_status', 'Pending'),
+                    'due_date': item.get('due_date')
                 })
-            body = {"status": "success", "id": unique_id}
 
-    # error
-    except KeyError:
-        statusCode = 400
-        body = 'Unsupported route: ' + event['routeKey']
+            statusCode = 200
+            response_body["message"] = "Retrieved all items"
+            response_body["data"] = formatted_items
 
-    # define return
-    body = json.dumps(body)
-    res = {
-        "statusCode": statusCode,
-        "headers": {
-            "Content-Type": "application/json"
-        },
-        "body": body
-    }
-    return res
+        # Get an item: /items/{id}
+        elif http_method == 'GET' and path_parameters and 'id' in path_parameters:
+            item_id = path_parameters['id']
 
+            response = table.get_item(Key={'id': item_id})
+            item = response.get('Item')
 
-if __name__ == "__main__":
-    test_context = {'testing': True}
+            if item:
+                statusCode = 200
+                response_body["message"] = "Item retrieved"
+                response_body["data"] = item
+            else:
+                statusCode = 404
+                response_body["message"] = "Item not found"
+                response_body["error"] = f"No item exists with ID '{item_id}'"
 
-    # PUT Events - Create items
-    put_event_01 = {
-        'routeKey': 'PUT /items',
-        'body': json.dumps({
-            'task': "Finish project proposal",
-            'priority': 'High',
-            'status': 'In Progress',
-            'due_date': '2025-07-05',
-        })
-    }
+        # Create new: /items
+        elif http_method == 'POST' and path == '/items':
+            try:
+                body = json.loads(event['body'])
 
-    put_event_02 = {
-        'routeKey': 'PUT /items',
-        'body': json.dumps({
-            'task': "Review documentation",
-            'priority': 'Medium',
-            'status': 'Pending',
-            'due_date': '2025-07-10',
-        })
-    }
+                required_fields = ['task_name']
+                missing = [
+                    field for field in required_fields if field not in body or not body[field]]
 
-    put_event_03 = {
-        'routeKey': 'PUT /items',
-        'body': json.dumps({
-            'task': "Team meeting",
-            'priority': 'Low',
-            'status': 'Completed',
-            'due_date': '2025-07-01',
-        })
-    }
+                if missing:
+                    statusCode = 400
+                    response_body["message"] = f"Missing required field(s): {', '.join(missing)}"
+                else:
+                    item = {
+                        # or use body['id'] if client provides
+                        'id': str(uuid.uuid4()),
+                        'task_name': body['task_name'],
+                        'task_priority': body.get('task_priority', 'Medium'),
+                        'task_status': body.get('task_status', 'Pending'),
+                        'due_date': body.get('due_date', None),
+                        'created_at': datetime.utcnow().isoformat()
+                    }
 
-    print("=========== PUT - Create Items ===========")
-    result1 = lambda_handler(put_event_01, test_context)
-    print("PUT Event 01:", result1)
+                    table.put_item(Item=item)
 
-    result2 = lambda_handler(put_event_02, test_context)
-    print("PUT Event 02:", result2)
+                    statusCode = 201
+                    response_body["message"] = "Item created"
+                    response_body["data"] = item
 
-    result3 = lambda_handler(put_event_03, test_context)
-    print("PUT Event 03:", result3)
+            except json.JSONDecodeError:
+                statusCode = 400
+                response_body["message"] = "Invalid JSON payload"
 
-    # Extract IDs for further testing
-    id1 = json.loads(result1['body'])["id"]
-    id2 = json.loads(result2['body'])["id"]
-    id3 = json.loads(result3['body'])["id"]
+        # Update item: /items/{id}
+        elif http_method == 'PUT' and path_parameters and 'id' in path_parameters:
+            item_id = path_parameters['id']
 
-    print(f"\nGenerated IDs: {id1}, {id2}, {id3}")
+            try:
+                body = json.loads(event['body'])
+                update_expression = []
+                expression_attribute_values = {}
 
-    print("\n=========== GET - Single Items ===========")
+                for field in ['task_name', 'task_priority', 'task_status', 'due_date']:
+                    if field in body:
+                        update_expression.append(f"{field} = :{field}")
+                        expression_attribute_values[f":{field}"] = body[field]
 
-    # GET Events - Get single items
-    get_event_01 = {
-        'routeKey': 'GET /items/{id}',
-        'pathParameters': {'id': id1}
-    }
+                if not update_expression:
+                    statusCode = 400
+                    response_body["message"] = "No fields provided to update"
+                else:
+                    table.update_item(
+                        Key={'id': item_id},
+                        UpdateExpression="SET " + ", ".join(update_expression),
+                        ExpressionAttributeValues=expression_attribute_values
+                    )
+                    statusCode = 200
+                    response_body["message"] = f"Item {item_id} updated"
+            except json.JSONDecodeError:
+                statusCode = 400
+                response_body["message"] = "Invalid JSON payload"
 
-    get_event_02 = {
-        'routeKey': 'GET /items/{id}',
-        'pathParameters': {'id': id2}
-    }
+        # Delete item: /items/{id}
+        elif http_method == 'DELETE' and path_parameters and 'id' in path_parameters:
+            item_id = path_parameters['id']
 
-    get_event_nonexistent = {
-        'routeKey': 'GET /items/{id}',
-        'pathParameters': {'id': 'nonexistent-id-123'}
-    }
+            # Check if item exists
+            response = table.get_item(Key={'id': item_id})
+            if 'Item' not in response:
+                statusCode = 404
+                response_body["message"] = "Item not found"
+                response_body["error"] = f"No item exists with ID '{item_id}'"
+            else:
+                table.delete_item(Key={'id': item_id})
+                statusCode = 200
+                response_body["message"] = f"Item {item_id} deleted"
 
-    print("GET Event 01:", lambda_handler(get_event_01, test_context))
-    print("GET Event 02:", lambda_handler(get_event_02, test_context))
-    print("GET Non-existent:", lambda_handler(get_event_nonexistent, test_context))
+        else:
+            statusCode = 405
+            response_body["message"] = "Method Not Allowed"
+            response_body["error"] = "Method not allowed for this endpoint"
 
-    # print("\n=========== GET - All Items ===========")
-    # # GET All Items
+        return {
+            'statusCode': statusCode,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps(response_body)
+        }
 
-    # get_all_event = {
-    #     'routeKey': 'GET /items'
-    # }
-
-    # print("GET All Items:", lambda_handler(get_all_event, test_context))
-
-    # DELETE Events
-    delete_event_01 = {
-        'routeKey': 'DELETE /items/{id}',
-        'pathParameters': {'id': id1}
-    }
-
-    delete_event_nonexistent = {
-        'routeKey': 'DELETE /items/{id}',
-        'pathParameters': {'id': 'nonexistent-id-456'}
-    }
-
-    print("\n=========== DELETE - Items ===========")
-    print("DELETE Event 01:", lambda_handler(delete_event_01, test_context))
-    print("DELETE Non-existent:",
-          lambda_handler(delete_event_nonexistent, test_context))
+    except Exception as e:
+        return {
+            'statusCode': statusCode,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({'error': str(e)})
+        }

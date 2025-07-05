@@ -86,4 +86,11 @@ variable "cloudflare_zone_id" {
   default     = "DNS"
 }
 
+# ###############################
+# AWS ACM
+# ###############################
+variable "acm_cert_arn" {
+  description = "ARN of an existing ACM certificate (must be in us-east-1 for CloudFront)"
+  type        = string
+}
 
