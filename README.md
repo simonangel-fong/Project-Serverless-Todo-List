@@ -6,6 +6,7 @@
   - Serverless
   - Cloud Native
   - IaC
+  - CICD
 
 - Technologies Used
 
@@ -16,7 +17,7 @@
     - `API Gateway`: Exposing Lambda functions as RESTful APIs.
     - `CloudFront`: Content Delivery Network (CDN) for caching and faster content delivery.
     - `Cloudflare`: DNS management and additional CDN capabilities.
-    - `GitHub Actions`: Controlling the deployment pipeline for automated deployment.
+    - `GitHub Actions`: Controlling the CICD pipeline for automated deployment.
 
 - Architecture
 
